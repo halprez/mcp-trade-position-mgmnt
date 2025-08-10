@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  tpm-mcp-server:
+    build: 
+      context: ..
+      dockerfile: deployment/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/tpm
+      - MCP_SERVER_NAME=Trade Promotion Assistant
+    depends_on:
+      - postgres
+    volumes:
+      - ../data:/app/data
+      - ../data/models:/app/models
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=tpm
+      - POSTGRES_USER=user  
+      - POSTGRES_PASSWORD=pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

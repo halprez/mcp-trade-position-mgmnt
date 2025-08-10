@@ -1,0 +1,117 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# UV specific
+.venv/
+
+# Traditional Python virtual environments (if any)
+venv/
+env/
+ENV/
+
+# IDE and Editor files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/.ropeproject
+.idea/
+*.swp
+*.swo
+*~
+
+# Data files
+data/dunnhumby/*.csv
+data/dunnhumby/*.txt
+data/dunnhumby/*.xlsx
+data/processed/*.csv
+data/processed/*.parquet
+data/processed/*.pickle
+data/models/*.pkl
+data/models/*.joblib
+data/models/*.h5
+data/models/*.pth
+data/models/*.onnx
+
+# Jupyter Notebooks
+notebooks/.ipynb_checkpoints/
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.db
+*.sqlite3
+*.db-journal
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmyper.json
+
+# Linting and formatting
+.ruff_cache/
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Model artifacts
+models/
+artifacts/
+
+# Temporary files
+tmp/
+temp/
+.tmp
+
+# Claude Code specific
+.claude/
+
+# Docker volumes and temp files
+docker-compose.override.yml

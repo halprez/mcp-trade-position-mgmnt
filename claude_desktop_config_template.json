@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "tpm-assistant": {
+      "command": "[PROJECT_DIR]/start_mcp.sh",
+      "args": [],
+      "env": {
+        "PATH": "$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  },
+  "globalShortcuts": {
+    "tpm-welcome": "claude_desktop_welcome",
+    "tpm-discover": "discover_tpm_capabilities", 
+    "tpm-help": "tpm_help_and_examples",
+    "tpm-data": "get_sample_data_overview"
+  },
+  "autoRun": {
+    "onConnect": ["claude_desktop_welcome"],
+    "tools": {
+      "prediction": ["predict_promotion_lift"],
+      "optimization": ["optimize_promotion_budget"],
+      "analysis": ["quick_promotion_analysis"]
+    }
+  }
+}
