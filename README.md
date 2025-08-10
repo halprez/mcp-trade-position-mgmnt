@@ -212,35 +212,6 @@ tpm-mcp/
 # Target: predicted_demand
 # Algorithm: LSTM or Prophet
 ```
-
----
-
-## 📊 Key Features to Demonstrate
-
-### 1. Promotion Planning Interface
-- Campaign creation with multiple mechanics
-- Budget allocation across products/channels
-- Timeline and calendar management
-- Approval workflows
-
-### 2. Real-time Analytics Dashboard
-- Live promotion performance monitoring
-- ROI tracking by campaign
-- Competitive analysis
-- Alert system for underperforming campaigns
-
-### 3. AI-Powered Recommendations
-- Optimal discount suggestions
-- Best promotional timing
-- Product bundling recommendations
-- Customer targeting insights
-
-### 4. Simulation Engine
-- "What-if" scenario modeling
-- Monte Carlo simulations
-- Sensitivity analysis
-- Budget reallocation recommendations
-
 ---
 
 ## 🐳 Docker & MCP Setup
@@ -289,23 +260,6 @@ volumes:
   }
 }
 ```
-
-### Dockerfile
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY src/ ./src/
-COPY data/ ./data/
-
-CMD ["python", "-m", "src.main"]
-```
-
----
 
 ## 💡 Claude Desktop Demo Scenarios
 
@@ -452,18 +406,3 @@ make process-sample
 
 📚 **[See Complete Test Examples →](./CLAUDE_DESKTOP_GUIDE.md#-how-to-interact)**
 
-## 🛠️ Development Commands
-
-```bash
-# See all available commands
-make help
-
-# Development workflow
-make dev          # Install with dev dependencies
-make format       # Format code with black and ruff
-make lint         # Check code with ruff
-make test         # Run pytest
-make typecheck    # Run mypy
-```
-
----
