@@ -102,8 +102,13 @@ Connected to your Claude Desktop with full TPM capabilities!
 Ready to optimize your trade promotions through AI-powered conversation! 🚀"""
 
 @mcp.tool()
+def welcome() -> str:
+    """Show welcome message with full TPM capabilities overview and quick start guide"""
+    return claude_desktop_welcome()
+
+@mcp.tool()
 def claude_desktop_welcome() -> str:
-    """Auto-triggered welcome message when Claude Desktop connects"""
+    """Complete welcome message when Claude Desktop connects"""
     return """🎉 **Welcome to Your AI-Powered TPM Assistant!**
 
 I'm your Trade Promotion Management AI, connected and ready to help optimize your promotions!
@@ -558,6 +563,8 @@ def main():
     print("   • optimize_promotion_budget - AI optimization")
     print("   • analyze_competitive_impact - Strategic analysis")
     print("\n🔗 MCP Server ready for Claude Desktop connection")
+    print("\n💡 To see the welcome message in Claude Desktop, type:")
+    print("   'Show me the TPM welcome message' or call claude_desktop_welcome()")
     
     # Run the MCP server
     mcp.run()
