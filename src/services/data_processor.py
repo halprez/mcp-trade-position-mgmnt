@@ -25,16 +25,24 @@ class DunnhumbyProcessor(DataProcessor):
         }
 
     def load_csv_files(self) -> dict[str, pd.DataFrame]:
-        """Load CSV files that exist"""
+        """Load CSV files that exist and have content"""
         expected_files = self.get_expected_files()
         dataframes = {}
 
         for name, filename in expected_files.items():
             file_path = self.data_path / filename
             if file_path.exists():
+                # Check if file is empty
+                if file_path.stat().st_size == 0:
+                    self._log(f"  - Skipping {filename}: File is empty")
+                    continue
+                    
                 self._log(f"Loading {filename}...")
                 try:
                     df = pd.read_csv(file_path, low_memory=False)
+                    if df.empty:
+                        self._log(f"  - Skipping {filename}: No data rows")
+                        continue
                     dataframes[name] = df
                     self._log(f"  - Loaded {len(df):,} rows")
                 except Exception as e:
@@ -127,10 +135,15 @@ class DunnhumbyProcessor(DataProcessor):
         """Create store records for unique store IDs"""
         self._log("Creating store records...")
 
-        stores = [Store(store_id=int(store_id)) for store_id in store_ids]
-        self.session.add_all(stores)
-        self.session.commit()
-        self._log(f"  - Created {len(stores)} store records")
+        try:
+            stores = [Store(store_id=int(store_id)) for store_id in store_ids]
+            self.session.add_all(stores)
+            self.session.commit()
+            self._log(f"  - Created {len(stores)} store records")
+        except Exception as e:
+            self._log(f"  - Error creating stores: {e}")
+            self.session.rollback()
+            # Try to continue without failing
 
     def process_promotions(self, causal_df: pd.DataFrame) -> int:
         """Process and store promotion/causal data"""
@@ -157,12 +170,31 @@ class DunnhumbyProcessor(DataProcessor):
             causal_df, create_promotion_batch, description="promotions"
         )
 
+    def clear_existing_data(self):
+        """Clear existing data to avoid duplicate key violations"""
+        self._log("Clearing existing data...")
+        try:
+            # Clear tables in reverse dependency order
+            self.session.query(Transaction).delete()
+            self.session.query(Promotion).delete()
+            self.session.query(Store).delete()
+            self.session.query(Product).delete()
+            self.session.query(Household).delete()
+            self.session.commit()
+            self._log("  - Existing data cleared")
+        except Exception as e:
+            self._log(f"  - Warning: Error clearing data: {e}")
+            self.session.rollback()
+
     def process_dataset(self) -> dict[str, int]:
         """Process the complete Dunnhumby dataset"""
         self._log("Starting Dunnhumby dataset processing...")
 
         # Setup database
         self.setup_database()
+        
+        # Clear existing data to avoid duplicates
+        self.clear_existing_data()
 
         # Load CSV files
         dataframes = self.load_csv_files()
