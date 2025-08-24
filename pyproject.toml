@@ -68,6 +68,13 @@ Issues = "https://github.com/halprez/mcp-trade-position-mgmnt/issues"
 tpm-server = "src.main:main"
 tpm-process-data = "scripts.process_data:main"
 
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
+]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 88

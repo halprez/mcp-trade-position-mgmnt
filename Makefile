@@ -34,7 +34,19 @@ dev:
 	uv run pre-commit install
 
 test:
-	uv run pytest
+	uv run pytest tests/test_basic_functionality.py -v
+
+test-all:
+	uv run pytest -v
+
+test-coverage:
+	uv run pytest tests/test_basic_functionality.py --cov=src --cov=mcp_server --cov-report=term-missing --cov-report=html:htmlcov
+
+test-models:
+	uv run pytest tests/test_models.py -v
+
+test-data:
+	uv run pytest tests/test_data_processor.py -v
 
 lint:
 	uv run ruff check .

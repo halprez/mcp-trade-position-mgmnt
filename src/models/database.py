@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 from .entities import Base
 
+#TODO: This should be an env parameter
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/tpm")
 
 # Create engine

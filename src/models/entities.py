@@ -18,8 +18,11 @@ class Household(Base):
     household_size_desc = Column(String)
     kid_category_desc = Column(String)
     
-    # Relationships
+    # Relationships  
     transactions = relationship("Transaction", back_populates="household")
+    
+    def __repr__(self):
+        return f"<Household(key='{self.household_key}')>"
 
 class Product(Base):
     __tablename__ = "products"
@@ -35,6 +38,9 @@ class Product(Base):
     
     # Relationships
     transactions = relationship("Transaction", back_populates="product")
+    
+    def __repr__(self):
+        return f"<Product(id={self.product_id}, brand='{self.brand}')>"
 
 class Store(Base):
     __tablename__ = "stores"
@@ -106,3 +112,6 @@ class Campaign(Base):
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"<Campaign(name='{self.name}')>"
