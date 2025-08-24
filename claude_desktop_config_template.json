@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "tpm-assistant": {
-      "command": "[PROJECT_DIR]/start_mcp.sh",
+      "command": "//home/alex/src/mcp-trade-position-mgmnt/start_mcp.sh",
       "args": [],
       "env": {
         "PATH": "$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
