@@ -13,7 +13,9 @@ RUN uv sync --frozen --no-dev
 
 # Copy application code
 COPY src/ ./src/
+COPY mcp_server.py ./
 COPY data/ ./data/
+COPY scripts/ ./scripts/
 
 # Expose port
 EXPOSE 8000
