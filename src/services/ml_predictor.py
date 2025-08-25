@@ -81,12 +81,18 @@ class FeatureEngineer:
 
         # Discount and duration features
         if discount_pct is not None:
-            features["discount_percentage"] = discount_pct
+            features["discount_pct"] = discount_pct
             features["discount_bin"] = self._bin_discount(discount_pct)
+            features["discount_squared"] = discount_pct ** 2
 
         if duration_days is not None:
             features["duration_days"] = duration_days
             features["duration_bin"] = self._bin_duration(duration_days)
+            features["duration_log"] = np.log1p(duration_days)
+            
+        # Interaction features
+        if discount_pct is not None and duration_days is not None:
+            features["discount_duration_interaction"] = discount_pct * duration_days
 
         # Time-based features
         now = datetime.now()
@@ -94,6 +100,7 @@ class FeatureEngineer:
         features["quarter"] = (now.month - 1) // 3 + 1
         features["is_weekend"] = now.weekday() >= 5
         features["is_holiday_season"] = now.month in [11, 12, 1]
+        features["start_day"] = now.timetuple().tm_yday  # Day of year as proxy
 
         return pd.DataFrame([features])
 
@@ -225,25 +232,29 @@ class FeatureEngineer:
             self.encoders[category].fit([value])
             return self.encoders[category].transform([value])[0]
 
-    def _bin_discount(self, discount_pct: float) -> str:
+    def _bin_discount(self, discount_pct: float) -> int:
         """Bin discount percentages into categories"""
         if discount_pct <= 10:
-            return "low"
-        elif discount_pct <= 25:
-            return "medium"
-        elif discount_pct <= 40:
-            return "high"
+            return 0
+        elif discount_pct <= 20:
+            return 1
+        elif discount_pct <= 30:
+            return 2
+        elif discount_pct <= 50:
+            return 3
         else:
-            return "very_high"
+            return 4
 
-    def _bin_duration(self, days: int) -> str:
+    def _bin_duration(self, days: int) -> int:
         """Bin duration into categories"""
         if days <= 7:
-            return "short"
+            return 0
+        elif days <= 14:
+            return 1
         elif days <= 21:
-            return "medium"
+            return 2
         else:
-            return "long"
+            return 3
 
 
 class PromotionLiftPredictor:

@@ -70,6 +70,15 @@ process-data:
 process-sample:
 	uv run python scripts/process_data.py --sample
 
+train-models:
+	uv run python scripts/train_models.py
+
+train-models-synthetic:
+	uv run python scripts/train_models.py --synthetic
+
+train-models-time-split:
+	uv run python scripts/train_models.py --time-split --test-size 0.2
+
 docker:
 	docker-compose up --build
 

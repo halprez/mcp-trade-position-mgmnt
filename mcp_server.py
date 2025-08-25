@@ -202,28 +202,60 @@ def predict_promotion_lift(
         store_name: Optional store name for location-specific prediction
     """
     
-    # Simulate ML prediction with realistic business logic
-    base_lift = 0.15  # 15% base lift
-    
-    # Adjust for discount depth
-    discount_factor = min(discount_percentage / 100 * 2.5, 0.8)  # Cap at 80%
-    
-    # Adjust for duration (diminishing returns)
-    duration_factor = 1.0 + (duration_days - 14) * 0.02
-    duration_factor = max(0.8, min(1.3, duration_factor))
-    
-    # Adjust for promotion type
-    type_multipliers = {
-        "DISCOUNT": 1.0,
-        "BOGO": 1.4,
-        "DISPLAY": 0.7, 
-        "COUPON": 1.1,
-        "BUNDLE": 1.2
-    }
-    type_factor = type_multipliers.get(promotion_type.upper(), 1.0)
-    
-    # Calculate predicted lift
-    predicted_lift = base_lift * (1 + discount_factor) * duration_factor * type_factor
+    # Try to use trained ML model, fallback to rule-based prediction
+    try:
+        from src.services.model_manager import predict_with_ml
+        prediction_result = predict_with_ml(
+            product_name=product_name,
+            discount_percentage=discount_percentage,
+            duration_days=duration_days,
+            promotion_type=promotion_type,
+            store_name=store_name
+        )
+        
+        # Extract prediction values
+        if hasattr(prediction_result, 'prediction'):
+            # ML PredictionResult object
+            predicted_lift = prediction_result.prediction / 100  # Convert back to decimal
+            confidence_lower = prediction_result.confidence_lower / 100
+            confidence_upper = prediction_result.confidence_upper / 100
+            model_version = prediction_result.model_version
+            is_ml = True
+        else:
+            # Fallback dictionary result
+            predicted_lift = prediction_result['prediction'] / 100
+            confidence_lower = prediction_result['confidence_lower'] / 100
+            confidence_upper = prediction_result['confidence_upper'] / 100
+            model_version = prediction_result['model_version']
+            is_ml = prediction_result.get('is_ml_prediction', False)
+            
+    except Exception as e:
+        # Fallback to rule-based prediction
+        base_lift = 0.15  # 15% base lift
+        
+        # Adjust for discount depth
+        discount_factor = min(discount_percentage / 100 * 2.5, 0.8)  # Cap at 80%
+        
+        # Adjust for duration (diminishing returns)
+        duration_factor = 1.0 + (duration_days - 14) * 0.02
+        duration_factor = max(0.8, min(1.3, duration_factor))
+        
+        # Adjust for promotion type
+        type_multipliers = {
+            "DISCOUNT": 1.0,
+            "BOGO": 1.4,
+            "DISPLAY": 0.7, 
+            "COUPON": 1.1,
+            "BUNDLE": 1.2
+        }
+        type_factor = type_multipliers.get(promotion_type.upper(), 1.0)
+        
+        # Calculate predicted lift
+        predicted_lift = base_lift * (1 + discount_factor) * duration_factor * type_factor
+        confidence_lower = max(0, predicted_lift - 0.08)
+        confidence_upper = min(1.0, predicted_lift + 0.08)
+        model_version = "rule_based_fallback"
+        is_ml = False
     
     # Estimate revenue impact (simulate)
     baseline_revenue = 10000  # Base weekly revenue
@@ -233,7 +265,12 @@ def predict_promotion_lift(
     discount_cost = baseline_revenue * (discount_percentage / 100) * (duration_days / 7)
     roi = ((revenue_lift - discount_cost) / discount_cost) * 100 if discount_cost > 0 else 0
     
+    prediction_method = "🧠 ML Model" if is_ml else "📏 Rule-Based"
+    confidence_range = f"{confidence_lower:.1%} - {confidence_upper:.1%}"
+    
     return f"""🤖 **AI Promotion Prediction: {product_name}**
+
+**Prediction Method:** {prediction_method} ({model_version})
 
 **Promotion Setup:**
 • Product: {product_name}
@@ -242,17 +279,12 @@ def predict_promotion_lift(
 • Type: {promotion_type}
 • Store: {store_name or 'All stores'}
 
-**🎯 ML Prediction Results:**
+**🎯 Prediction Results:**
 
 **Sales Lift:** {predicted_lift:.1%}
+**Confidence Range:** {confidence_range}
 **Revenue Impact:** ${revenue_lift:,.0f}
 **Estimated ROI:** {roi:.0f}%
-
-**📊 Performance Breakdown:**
-• Base Lift Potential: {base_lift:.1%}
-• Discount Impact: +{discount_factor:.1%}
-• Duration Effect: {(duration_factor-1)*100:+.0f}%
-• Promotion Type Boost: {(type_factor-1)*100:+.0f}%
 
 **🎯 Strategic Insights:**
 • {'Strong performance expected' if predicted_lift > 0.3 else 'Moderate performance expected' if predicted_lift > 0.15 else 'Conservative performance expected'}
@@ -263,8 +295,9 @@ def predict_promotion_lift(
 • {'Consider increasing discount for better lift' if discount_percentage < 15 else 'Discount level appropriate'}
 • {'BOGO might deliver higher impact' if promotion_type != 'BOGO' and discount_percentage > 25 else 'Promotion type well-suited'}
 • Monitor competitor responses during campaign
+• {'Train ML models for better accuracy' if not is_ml else 'Using trained ML model for enhanced predictions'}
 
-**Confidence Level:** High (ML model trained on {product_name} historical data)"""
+**Model Info:** {'ML-powered with historical data training' if is_ml else 'Rule-based fallback - consider training ML models'}"""
 
 @mcp.tool()
 def optimize_promotion_budget(
@@ -381,6 +414,69 @@ def optimize_promotion_budget(
 4. Plan competitive response strategies"""
     
     return result
+
+@mcp.tool()
+def check_model_status() -> str:
+    """Check the status of trained ML models and recommend training if needed"""
+    try:
+        from src.services.model_manager import get_model_status
+        status = get_model_status()
+        
+        if status['status'] == 'healthy':
+            return f"""✅ **ML Model Status: Healthy**
+
+**Models Available:**
+• Available models: {status['available_models']}
+• Loaded models: {', '.join(status['loaded_models']) if status['loaded_models'] else 'None'}
+• Best model: {'✅ Available' if status['has_best_model'] else '❌ Not available'}
+• Fallback: {'✅ Available' if status['fallback_available'] else '❌ Not available'}
+
+**Model Directory:** {status['models_directory']}
+
+**Status:** Your ML models are trained and ready! Predictions will use trained models for enhanced accuracy.
+
+**Next Steps:**
+• Continue using ML-powered predictions
+• Consider retraining models monthly with new data
+• Monitor prediction performance"""
+        
+        else:
+            return f"""⚠️ **ML Model Status: No Trained Models**
+
+**Current Status:**
+• Available models: {status['available_models']}
+• Loaded models: {', '.join(status['loaded_models']) if status['loaded_models'] else 'None'}
+• Best model: {'✅ Available' if status['has_best_model'] else '❌ Not available'}
+• Fallback: {'✅ Available' if status['fallback_available'] else '❌ Not available'}
+
+**Impact:** Predictions are using rule-based fallback methods instead of trained ML models.
+
+**To Train Models:**
+1. Ensure you have processed your data: `make process-sample`
+2. Train models: `make train-models`
+3. Or use synthetic data: `make train-models-synthetic`
+
+**Training Commands:**
+• `make train-models` - Train with real data (80/20 split)
+• `make train-models-synthetic` - Train with synthetic data
+• `make train-models-time-split` - Use time-based data split
+
+**Benefits of Training:**
+• More accurate predictions based on your data
+• Confidence intervals and feature importance
+• Model performance metrics and validation"""
+            
+    except Exception as e:
+        return f"""❌ **Model Status Check Failed**
+
+Error: {str(e)}
+
+**Fallback Available:** Rule-based predictions are still available.
+
+**To Resolve:**
+1. Check that the model management system is properly configured
+2. Ensure database is accessible
+3. Try training new models: `make train-models-synthetic`"""
 
 @mcp.tool() 
 def analyze_competitive_impact(product_name: str, competitor_actions: str) -> str:
